@@ -11,16 +11,6 @@
  * 自动开团助力
  * box设置不自动充能
  * 可设置每天通知时间
-  quanx:
-  [task_local]
-  10 * * * * https://raw.githubusercontent.com/whyour/hundun/master/quanx/jx_factory.js, tag=京喜工厂, img-url=https://raw.githubusercontent.com/58xinian/icon/master/jdgc.png, enabled=true
-
-  Loon:
-  [Script]
-  cron "10 * * * *" script-path=https://raw.githubusercontent.com/whyour/hundun/master/quanx/jx_factory.js,tag=京喜工厂
-
-  Surge:
-  京喜工厂 = type=cron,cronexp="10 * * * *",wake-system=1,timeout=20,script-path=https://raw.githubusercontent.com/whyour/hundun/master/quanx/jx_factory.js
 *
 **/
 // prettier-ignore
@@ -78,6 +68,7 @@ $.appId = 10001;
       await awardTuan();
       await $.wait(500);
       const endInfo = await getUserInfo();
+      await TotalBean();
       $.info.commodityInfo &&
         $.result.push(
           `【名称】：${$.info.commodityInfo.name}`,
@@ -132,7 +123,50 @@ function getCookies() {
   }
   return true;
 }
-
+function TotalBean() {
+  return new Promise(async resolve => {
+    const options = {
+      url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
+      headers: {
+        Host: "me-api.jd.com",
+        Accept: "*/*",
+        Connection: "keep-alive",
+        Cookie: currentCookie,
+        "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+        "Accept-Language": "zh-cn",
+        "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
+        "Accept-Encoding": "gzip, deflate, br"
+      }
+    }
+    $.get(options, (err, resp, data) => {
+      try {
+        if (err) {
+          $.logErr(err)
+        } else {
+          if (data) {
+            data = JSON.parse(data);
+            if (data['retcode'] === "1001") {
+              $.isLogin = false; //cookie过期
+              return;
+            }
+            if (data['retcode'] === "0" && data.data && data.data.hasOwnProperty("userInfo")) {
+              $.nickName = data.data.userInfo.baseInfo.nickname;
+            }
+            if (data['retcode'] === '0' && data.data && data.data['assetInfo']) {
+              $.beanCount = data.data && data.data['assetInfo']['beanNum'];
+            }
+          } else {
+            $.log('京东服务器返回空数据');
+          }
+        }
+      } catch (e) {
+        $.logErr(e)
+      } finally {
+        resolve();
+      }
+    })
+  })
+}
 function getUserInfo() {
   return new Promise(resolve => {
     $.get(taskUrl('userinfo/GetUserInfo'), async (err, resp, data) => {
@@ -201,9 +235,9 @@ function checkProductProcess() {
         $.currentCookie.match(/pt_pin=(.+?);/) && $.currentCookie.match(/pt_pin=(.+?);/)[1],
       );
       if ($.isNode()) {
-        notify.sendNotify($.name, `${userName}\n【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`, {}, '\n\n本脚本免费使用 By：https://github.com/whyour/qinglong')
+        notify.sendNotify($.name, `账号${$.index}：${$.nickName || userName}\n【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`, {}, '\n\n本脚本免费使用 By：https://github.com/whyour/qinglong')
       }
-      $.msg($.name, `${userName}`, `【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`);
+      $.msg($.name, `账号${$.index}：${$.nickName || userName}`, `【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`);
       return true;
     }
   }
