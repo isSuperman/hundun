@@ -36,6 +36,7 @@ $.appId = 10001;
   if (!getCookies()) return;
   await requestAlgo();
   for (let i = 0; i < $.cookieArr.length; i++) {
+    $.index = i + 1
     $.currentCookie = $.cookieArr[i];
     $.currentToken = JSON.parse($.tokens[i] || '{}');
     if ($.currentCookie) {
