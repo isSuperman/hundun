@@ -141,6 +141,9 @@ function getUserInfo() {
           resolve();
           return;
         }
+        if (data['retcode'] === "0" && data.data && data.data.hasOwnProperty("userInfo")) {
+              $.nickName = data.data.userInfo.baseInfo.nickname;
+            }
         const { ret, data: { factoryList = [], productionList = [], user = {} } = {}, msg } = JSON.parse(data);
         $.log(`\n获取用户信息：${msg}\n${$.showLog ? data : ''}`);
         if (!productionList || !productionList[0]) {
@@ -201,9 +204,9 @@ function checkProductProcess() {
         $.currentCookie.match(/pt_pin=(.+?);/) && $.currentCookie.match(/pt_pin=(.+?);/)[1],
       );
       if ($.isNode()) {
-        notify.sendNotify($.name, `${userName}\n【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`, {}, '\n\n本脚本免费使用 By：https://github.com/whyour/qinglong')
+        notify.sendNotify($.name, `${$.nickName || $.UserName}\n【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`, {}, '\n\n本脚本免费使用 By：https://github.com/whyour/qinglong')
       }
-      $.msg($.name, `${userName}`, `【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`);
+      $.msg($.name, `${$.nickName || $.UserName}`, `【提示】商品 ${$.info.commodityInfo.name} 已生产完成，请前往京喜工厂兑换并选择新商品！`);
       return true;
     }
   }
