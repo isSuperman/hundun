@@ -50,6 +50,7 @@ $.appId = 10001;
         $.result.push(`【账户】未选择商品，跳过`);
         continue;
       }
+      await TotalBean();
       await $.wait(500);
       await getCommodityDetail();
       if (checkProductProcess()) continue;
@@ -69,7 +70,6 @@ $.appId = 10001;
       await awardTuan();
       await $.wait(500);
       const endInfo = await getUserInfo();
-      await TotalBean();
       $.info.commodityInfo &&
         $.result.push(
           `【名称】：${$.info.commodityInfo.name}`,
